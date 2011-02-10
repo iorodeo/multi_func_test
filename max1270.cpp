@@ -18,7 +18,7 @@
 #define BIPOLAR       0b00000100
 #define UNIPOLAR      0b00000000
 #define CTL_BYTE_INIT 0b10000000
-#define SSTRB_WAIT_US 2
+#define SSTRB_WAIT_US 1
 
 // ----------------------------------------------------------------------------
 // MAX1270::MAX1270
@@ -96,9 +96,7 @@ int MAX1270::sample(int chan) {
     SPI.transfer(ctlByte);
 
     // Wait for sstrb to go high
-    while(digitalRead(sstrb) == LOW) {
-        delayMicroseconds(SSTRB_WAIT_US);
-    }
+    while(digitalRead(sstrb) == LOW) {};
 
     // Read sample 
     msb = SPI.transfer(0x00);

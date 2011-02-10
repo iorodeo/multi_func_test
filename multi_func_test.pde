@@ -7,11 +7,16 @@
 // ----------------------------------------------------------------------------
 #include <SPI.h>
 #include "max1270.h"
+#include "mcp4822.h"
 
-#define CHIP_SELECT A0
-#define SSTRB 2
+#define AIN_CS A0
+#define AIN_SSTRB 2
 
-MAX1270 analogIn = MAX1270(CHIP_SELECT,SSTRB);
+#define AOUT_CS A1
+#define AOUT_LDAC A3
+
+MAX1270 analogIn = MAX1270(AIN_CS,AIN_SSTRB);
+MCP4822 analogOut = MCP4822(AOUT_CS,AOUT_LDAC);
 
 void setup() {
 
@@ -25,9 +30,13 @@ void setup() {
     // Configure analog inputs
     analogIn.setBipolar();
     analogIn.setRange10V();
+
+    // Configure analog outputs
+    analogOut.setGain2X_AB();
 }
 
 void loop() {
+
     if (0) {
         // Read all samples from the MAX1270 IC
         int values[MAX1270_NUMCHAN];
@@ -39,12 +48,34 @@ void loop() {
         Serial.println();
         delay(1);
     }
-    else {
+
+    if (0)  {
         // Read a single sample from the MAX1270 IC
         int val;
         val = analogIn.sample(0);
         Serial.println(val,DEC);
         delay(1);
+    }
+
+    if (1) { 
+        static int cnt=0;
+        Serial.print("cnt = ");
+        Serial.println(cnt,DEC);
+        //analogOut.setValue_A(cnt);
+        //analogOut.setValue_B(cnt);
+        analogOut.setValue_AB(cnt,cnt);
+        //analogOut.setValue_A(cnt);
+        //analogOut.off_B();
+        cnt += 20;
+        if (cnt > 4095) {
+            cnt = 0;
+        }
+    }
+
+    if (0) {
+        int val;
+        val = analogIn.sample(0);
+        analogOut.setValue_A(val);
     }
 }
 

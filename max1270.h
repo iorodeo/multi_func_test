@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// max1270.cpp
+// max1270.h
 //
 // Provides an SPI based interface to the MAX1270 multirange data acquisition IC
 // from Maxim.
@@ -21,7 +21,7 @@ private:
     int getChanMask(int chan);         
     int getCtlByte(int chan);
 public:
-    MAX1270(int cs, int sstrb);
+    MAX1270(int csPin, int sstrbPin);
     void setBipolar();
     void setBipolar(int chan);
     void setUnipolar();
