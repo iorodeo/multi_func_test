@@ -20,6 +20,12 @@
 #define CTL_BYTE_INIT 0b10000000
 #define SSTRB_WAIT_US 1
 
+// LSB to voltages for the different gain and polarity combinations
+#define LSB2VOLTS_5V_BIPOLAR    0.00244140625
+#define LSB2VOLTS_5V_UNIPOLAR   0.001220703125
+#define LSB2VOLTS_10V_BIPOLAR   0.0048828125
+#define LSB2VOLTS_10V_UNIPOLAR  0.00244140625
+
 // ----------------------------------------------------------------------------
 // MAX1270::MAX1270
 //
@@ -128,6 +134,58 @@ void MAX1270::sampleAll(int values[] ) {
     } 
 }
 
+
+// ----------------------------------------------------------------------------
+// MAX1270::sampleVolts
+//
+// Gets an analog sample from the given channel and converts to a floating point 
+// voltage value
+//
+// Note, may want to move this to fixed point instead floating point.
+// ----------------------------------------------------------------------------
+float MAX1270::sampleVolts(int chan) {
+    int valueInt;
+    float valueVolts = 0;
+    if ((chan >= 0) && (chan < MAX1270_NUMCHAN)) { 
+        valueInt = sample(chan);
+        switch (chanRange[chan] | chanPolarity[chan]) {
+
+            case (RANGE_5V | BIPOLAR):
+                valueVolts = LSB2VOLTS_5V_BIPOLAR*valueInt;
+                break;
+
+            case (RANGE_5V | UNIPOLAR):
+                valueVolts = LSB2VOLTS_5V_UNIPOLAR*valueInt;
+                break;
+
+            case (RANGE_10V | BIPOLAR):
+                valueVolts = LSB2VOLTS_10V_BIPOLAR*valueInt;
+                break;
+
+            case (RANGE_10V | UNIPOLAR):
+                valueVolts = LSB2VOLTS_10V_UNIPOLAR*valueInt;
+                break;
+
+            default:
+                break;
+        }
+    }
+    return valueVolts;
+}
+
+// ----------------------------------------------------------------------------
+// MAX1270::sampleAllVolts
+//
+// Gets an analog sample from all input channels and converts to a floating 
+// point voltage value.
+//
+// Note, may want to move this to fixed point instead of floating point.
+// ----------------------------------------------------------------------------
+void MAX1270::sampleAllVolts(float values[] ) {
+    for (int i=0; i<MAX1270_NUMCHAN; i++) {
+        values[i] = sampleVolts(i);
+    } 
+}
 // ----------------------------------------------------------------------------
 // MAX1270::setInternalClock
 //

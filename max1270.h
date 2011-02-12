@@ -34,6 +34,8 @@ public:
     void setExternalClock();
     int  sample(int chan);
     void sampleAll(int value[]);
+    float sampleVolts(int chan);
+    void sampleAllVolts(float value[]);
     int numChan();
 };
 
