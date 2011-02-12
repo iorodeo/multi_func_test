@@ -6,9 +6,11 @@
 // Author: Will Dickson, IO Rodeo Inc.
 // ----------------------------------------------------------------------------
 #include <SPI.h>
+#include <Streaming.h>
 #include "max1270.h"
 #include "mcp4822.h"
 #include "mcp4261.h"
+#include "dynamics.h"
 
 #define AIN_CS A0
 #define AIN_SSTRB 2
@@ -20,6 +22,7 @@
 MAX1270 analogIn = MAX1270(AIN_CS,AIN_SSTRB);
 MCP4822 analogOut = MCP4822(AOUT_CS,AOUT_LDAC);
 MCP4261 digiPot = MCP4261(DIGIPOT_CS);
+Dynamics dynamics = Dynamics();
 
 void setup() {
 
@@ -41,6 +44,10 @@ void setup() {
     //digiPot.setWiper0_NonVolatile(128);
     //delay(100);
     //digiPot.setWiper1_NonVolatile(128);
+
+    dynamics.setMass(5.0);
+    dynamics.setDt(0.01);
+    dynamics.setDamping(1.0);
 
 }
 
@@ -88,7 +95,7 @@ void loop() {
         analogOut.setValue_A(val);
     }
 
-    if (1) {
+    if (0) {
         static int cnt=10;
         //digiPot.setWiper0(cnt);
         //digiPot.setWiper1(256-cnt);
@@ -106,6 +113,23 @@ void loop() {
             Serial.println("decr");
         }
         delay(100);
+    }
+
+    if (1) {
+        float force;
+        float vel;
+        float pos;
+        int output;
+
+        force = analogIn.sampleVolts(0);
+        dynamics.update(force);
+        vel = dynamics.getVelocity();
+        pos = dynamics.getPosition();
+        output = (int) 300*vel;
+        analogOut.setValue_A(output);
+        Serial << "vel: " << vel << ", pos: " << pos << ", output: " << output << endl;
+        delay(10);
+
     }
 }
 
