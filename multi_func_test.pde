@@ -11,18 +11,21 @@
 #include "mcp4822.h"
 #include "mcp4261.h"
 #include "dynamics.h"
+#include "Messenger.h"
 
 #define AIN_CS A0
 #define AIN_SSTRB 2
-
 #define AOUT_CS A1
 #define AOUT_LDAC A3
 #define DIGIPOT_CS A2
+#define SSR0 7
+#define SSR1 10
 
 MAX1270 analogIn = MAX1270(AIN_CS,AIN_SSTRB);
 MCP4822 analogOut = MCP4822(AOUT_CS,AOUT_LDAC);
 MCP4261 digiPot = MCP4261(DIGIPOT_CS);
 Dynamics dynamics = Dynamics();
+Messenger message = Messenger(); 
 
 void setup() {
 
@@ -49,9 +52,47 @@ void setup() {
     dynamics.setDt(0.01);
     dynamics.setDamping(1.0);
 
+    message.attach(messageCompleted);
+    pinMode(SSR0,OUTPUT);
+    pinMode(SSR1,OUTPUT);
+    analogOut.setValue_A(0);
+    digitalWrite(SSR0,LOW);
+    digitalWrite(SSR1,LOW);
+
+}
+
+// Define messenger function
+void messageCompleted() {
+    int value;
+    while ( message.available() ) {
+        value = message.readInt();
+        setMotorVel(value);
+    }
+}
+
+void setMotorVel(int value) {
+    int absValue;
+    if (value >= 0) {
+        Serial.print("dir +, value = ");
+        digitalWrite(SSR1,LOW);
+        digitalWrite(SSR0,HIGH);
+    }
+    else {
+        Serial.print("dir -, value = ");
+        digitalWrite(SSR0,LOW);
+        digitalWrite(SSR1,HIGH);
+    }
+    absValue = abs(value);
+    Serial.println(absValue,DEC);
+    analogOut.setValue_A(absValue);
+
 }
 
 void loop() {
+
+    if (1) {
+        while ( Serial.available() ) message.process( Serial.read() );
+    }
 
 
     if (0) {
@@ -75,16 +116,21 @@ void loop() {
     }
 
     if (0) { 
+        int val;
         static int cnt=0;
-        Serial.print("cnt = ");
-        Serial.println(cnt,DEC);
+        Serial.print(cnt,DEC);
+        Serial.print(" ");
         //analogOut.setValue_A(cnt);
+        analogOut.setValue_A(cnt);
+        delay(10);
+        val = analogIn.sample(0);
+        Serial.println(val,DEC);
         //analogOut.setValue_B(cnt);
-        analogOut.setValue_AB(cnt,cnt);
+        //analogOut.setValue_AB(cnt,cnt);
         //analogOut.setValue_A(cnt);
         //analogOut.off_B();
-        cnt += 20;
-        if (cnt > 4095) {
+        cnt += 1;
+        if (cnt > 3900) {
             cnt = 0;
         }
     }
@@ -115,7 +161,7 @@ void loop() {
         delay(100);
     }
 
-    if (1) {
+    if (0) {
         float force;
         float vel;
         float pos;
